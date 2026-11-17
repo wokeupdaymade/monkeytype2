@@ -597,8 +597,8 @@ importers:
         specifier: ^5.5.1
         version: 5.5.1(storybook@10.6.2(@types/react@19.2.14)(prettier@3.7.1)(react@18.3.1))
       '@storybook/addon-a11y':
-        specifier: ^10.6.2
-        version: 10.6.2(storybook@10.6.2(@types/react@19.2.14)(prettier@3.7.1)(react@18.3.1))
+        specifier: ^10.6.7
+        version: 10.6.7(storybook@10.6.2(@types/react@19.2.14)(prettier@3.7.1)(react@18.3.1))
       '@storybook/addon-docs':
         specifier: ^10.6.2
         version: 10.6.2(@types/react@19.2.14)(storybook@10.6.2(@types/react@19.2.14)(prettier@3.7.1)(react@18.3.1))
@@ -4330,10 +4330,10 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@storybook/addon-a11y@10.6.2':
-    resolution: {integrity: sha512-zleS+btwrTRcUf3opbZntKsEt6PTqAtxsek08tx5jh5fRvd6wWmtnwW3uaBcypfIKnheTB3KGljJwFX+Mc+Umg==}
+  '@storybook/addon-a11y@10.6.7':
+    resolution: {integrity: sha512-ARd+bjfOYoICe00+svRgFsCVqV7RbN+wgi8yfRhk31kESR7NnTMBGiZD8vWv/r3xqul/Ddr1uR6mUK4lpH7sqw==}
     peerDependencies:
-      storybook: ^10.6.2
+      storybook: ^10.6.7
 
   '@storybook/addon-docs@10.6.2':
     resolution: {integrity: sha512-f7Rv/rzX1sk4lUDTeoIRkXWcWvNwLv7vBnfpFGb3f88MliB+M4ZekGKNiKtrmi44uLFt52gzwwPzj2eGDu0DQQ==}
@@ -5758,8 +5758,8 @@ packages:
   avvio@7.2.5:
     resolution: {integrity: sha512-AOhBxyLVdpOad3TujtC9kL/9r3HnTkxwQ5ggOsYrvvZP1cCFvzHWJd5XxZDFuTn+IN8vkKSG5SEJrd27vCSbeA==}
 
-  axe-core@4.11.1:
-    resolution: {integrity: sha512-BASOg+YwO2C+346x3LZOeoovTIoTrRqEsqMa6fmfAV0P+U9mFr9NsyOEpiYvFjbc64NMrSswhV50WdXzdb/Z5A==}
+  axe-core@4.14.0:
+    resolution: {integrity: sha512-9WTZxEjsZ7b13TH8JPmbV2z8CHbl80/2hm3XPEG4JgNdQLK81IBRXmSxHfMAOkSqQeRxT/0dwNDz2GOm3zzpcQ==}
     engines: {node: '>=4'}
 
   axios@1.7.4:
@@ -15813,10 +15813,10 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@storybook/addon-a11y@10.6.2(storybook@10.6.2(@types/react@19.2.14)(prettier@3.7.1)(react@18.3.1))':
+  '@storybook/addon-a11y@10.6.7(storybook@10.6.2(@types/react@19.2.14)(prettier@3.7.1)(react@18.3.1))':
     dependencies:
       '@storybook/global': 5.0.0
-      axe-core: 4.11.1
+      axe-core: 4.14.0
       storybook: 10.6.2(@types/react@19.2.14)(prettier@3.7.1)(react@18.3.1)
 
   '@storybook/addon-docs@10.6.2(@types/react@19.2.14)(storybook@10.6.2(@types/react@19.2.14)(prettier@3.7.1)(react@18.3.1))':
@@ -17372,7 +17372,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  axe-core@4.11.1: {}
+  axe-core@4.14.0: {}
 
   axios@1.7.4(debug@4.3.6(supports-color@5.5.0)):
     dependencies:
