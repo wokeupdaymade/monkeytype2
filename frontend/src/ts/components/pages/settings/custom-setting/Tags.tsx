@@ -1,0 +1,144 @@
+import { TagNameSchema } from "@monkeytype/schemas/users";
+import { For, JSXElement } from "solid-js";
+import { z } from "zod";
+
+import { deleteLocalTag } from "../../../../collections/results";
+import {
+  clearTagPBs,
+  deleteTag,
+  getTags,
+  isTagActive,
+  toggleTagActive,
+  updateTagName,
+} from "../../../../queries/tags";
+import { showSimpleModal } from "../../../../states/simple-modal";
+import { normalizeName } from "../../../../utils/strings";
+import { Button } from "../../../common/Button";
+import { showAddTagModal } from "../../../modals/AddTagModal";
+import { SearchableSetting } from "../SearchableSetting";
+
+export function Tags(): JSXElement {
+  return (
+    <SearchableSetting
+      key="tags"
+      title="tags"
+      description="With tags, you can compare how fast you're typing in different situations. You can see your active tags above the test words. They will remain active until you deactivate them, or refresh the page."
+      fa={{
+        icon: "fa-tags",
+      }}
+      inputs={
+        <div class="grid gap-2">
+          <For each={getTags()}>
+            {(tag) => (
+              <div class="grid grid-cols-[1fr_auto_auto_auto] gap-2">
+                <Button
+                  text={tag.name}
+                  active={isTagActive(tag._id)}
+                  onClick={() => {
+                    toggleTagActive(tag._id);
+                  }}
+                />
+                <Button
+                  fa={{
+                    icon: "fa-crown",
+                  }}
+                  onClick={() => {
+                    showSimpleModal({
+                      title: "Clear personal bests",
+                      text: `Are you sure you want to clear personal bests for tag "${tag.name}"? This action cannot be undone.`,
+                      buttonText: "clear",
+                      execFn: async () => {
+                        const { error } = await clearTagPBs(tag._id);
+                        if (error !== null) {
+                          return {
+                            status: "error",
+                            message: "Failed to clear personal bests",
+                            notificationOptions: { error },
+                          };
+                        }
+
+                        return {
+                          status: "success",
+                          message: "Personal bests cleared",
+                        };
+                      },
+                    });
+                  }}
+                />
+                <Button
+                  fa={{
+                    icon: "fa-pen",
+                  }}
+                  onClick={() => {
+                    showSimpleModal({
+                      title: "Edit tag name",
+                      buttonText: "save",
+                      focusFirstInput: "focusAndSelect",
+                      schema: z.object({ tagName: TagNameSchema }),
+                      inputs: {
+                        tagName: {
+                          type: "text",
+                          initVal: tag.name,
+                          preprocess: normalizeName,
+                        },
+                      },
+                      execFn: async ({ tagName }) => {
+                        const { error } = await updateTagName(tag._id, tagName);
+                        if (error !== null) {
+                          return {
+                            status: "error",
+                            message: "Failed to update tag name",
+                            notificationOptions: { error },
+                          };
+                        }
+
+                        return {
+                          status: "success",
+                          message: "Tag name updated",
+                        };
+                      },
+                    });
+                  }}
+                />
+                <Button
+                  fa={{
+                    icon: "fa-trash",
+                  }}
+                  onClick={() => {
+                    showSimpleModal({
+                      title: "Delete tag",
+                      text: `Are you sure you want to delete tag "${tag.name}"? This action cannot be undone.`,
+                      buttonText: "delete",
+                      execFn: async () => {
+                        const { error } = await deleteTag(tag._id);
+                        if (error !== null) {
+                          return {
+                            status: "error",
+                            message: "Failed to delete tag",
+                            notificationOptions: { error },
+                          };
+                        }
+                        await deleteLocalTag({ tagId: tag._id });
+
+                        return {
+                          status: "success",
+                          message: "Tag deleted",
+                        };
+                      },
+                    });
+                  }}
+                />
+              </div>
+            )}
+          </For>
+          <Button
+            text="add tag"
+            onClick={() => {
+              showAddTagModal();
+            }}
+          />
+        </div>
+      }
+    />
+  );
+}

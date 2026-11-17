@@ -1,0 +1,264 @@
+import { useQuery } from "@tanstack/solid-query";
+import {
+  createMemo,
+  createSignal,
+  JSXElement,
+  onCleanup,
+  Show,
+} from "solid-js";
+
+import { usePendingConnectionsQuery } from "../../../collections/connections";
+import { createEffectOn } from "../../../hooks/effects";
+import { useRefWithUtils } from "../../../hooks/useRefWithUtils";
+import { getServerConfigurationQueryOptions } from "../../../queries/server-configuration";
+import { getUserData } from "../../../queries/user";
+import {
+  getAccountButtonSpinner,
+  getAnimatedLevel,
+  setAnimatedLevel,
+} from "../../../states/header";
+import { showModal } from "../../../states/modals";
+import { getRoutePage } from "../../../states/router";
+import { isFocusMode } from "../../../states/test";
+import { restartTest } from "../../../test/test-logic";
+import { cn } from "../../../utils/cn";
+import { getLevelFromTotalXp } from "../../../utils/levels";
+import { Anime } from "../../common/anime";
+import { AnimePresence } from "../../common/anime/AnimePresence";
+import { Button } from "../../common/Button";
+import { NotificationBubble } from "../../common/NotificationBubble";
+import { User } from "../../common/User";
+import { AccountMenu } from "./AccountMenu";
+import { AccountXpBar } from "./AccountXpBar";
+
+export function Nav(): JSXElement {
+  const [getAccountMenuOpen, setAccountMenuOpen] = createSignal(false);
+  const isCoarse = () => window.matchMedia("(pointer: coarse)").matches;
+  const [accountMenuRef, accountMenuEl] = useRefWithUtils<HTMLDivElement>();
+
+  const pendingConnections = usePendingConnectionsQuery();
+
+  const handleClickOutside = (e: MouseEvent) => {
+    const el = accountMenuEl();
+    if (getAccountMenuOpen() && el && !el.native.contains(e.target as Node)) {
+      setAccountMenuOpen(false);
+    }
+  };
+  document.addEventListener("click", handleClickOutside);
+  onCleanup(() => document.removeEventListener("click", handleClickOutside));
+
+  const buttonClass = () =>
+    cn("aspect-square", {
+      "opacity-(--nav-focus-opacity)": isFocusMode(),
+    });
+
+  // on sign in and out only: XP gains animate the level through the XP bar
+  createEffectOn(
+    () => getUserData()?.uid,
+    (uid) => {
+      if (uid === undefined) {
+        setAnimatedLevel(0);
+        return;
+      }
+      setAnimatedLevel(getLevelFromTotalXp(getUserData()?.xp ?? 0));
+    },
+  );
+
+  const showFriendsNotificationBubble = createMemo((): boolean => {
+    return pendingConnections().length > 0;
+  });
+
+  const showAlertsNotificationBubble = createMemo((): boolean => {
+    const userData = getUserData();
+    if (userData === undefined) return false;
+
+    return userData.inboxUnreadSize > 0;
+  });
+
+  const serverConfig = useQuery(() => getServerConfigurationQueryOptions());
+  const showLoginButton = (): boolean =>
+    serverConfig.data?.users.signUp ?? true;
+
+  return (
+    <nav class={cn("z-5 flex w-full items-center gap-1 md:gap-2")}>
+      <Button
+        variant="text"
+        fa={{
+          icon: "fa-keyboard",
+          fixedWidth: true,
+        }}
+        to="/"
+        class={buttonClass()}
+        dataset={{
+          "data-nav-item": "test",
+        }}
+        onClick={() => {
+          if (getRoutePage() === "test") void restartTest();
+        }}
+      />
+      <Button
+        variant="text"
+        fa={{
+          icon: "fa-crown",
+          fixedWidth: true,
+        }}
+        dataset={{
+          "data-nav-item": "leaderboards",
+        }}
+        class={buttonClass()}
+        to="/leaderboards"
+      />
+      <Button
+        variant="text"
+        fa={{
+          icon: "fa-brain",
+          fixedWidth: true,
+        }}
+        class={buttonClass()}
+        dataset={{
+          "data-nav-item": "adaptive",
+        }}
+        to="/adaptive"
+      />
+      <Button
+        variant="text"
+        fa={{
+          icon: "fa-info",
+          fixedWidth: true,
+        }}
+        class={buttonClass()}
+        dataset={{
+          "data-nav-item": "about",
+        }}
+        to="/about"
+      />
+      <Button
+        variant="text"
+        fa={{
+          icon: "fa-cog",
+          fixedWidth: true,
+        }}
+        class={buttonClass()}
+        to="/settings"
+        dataset={{
+          "data-nav-item": "settings",
+        }}
+      />
+      <div class="grow"></div>
+      <Button
+        variant="text"
+        fa={{
+          icon: "fa-bell",
+          fixedWidth: true,
+        }}
+        dataset={{
+          "data-nav-item": "alerts",
+        }}
+        onClick={() => {
+          showModal("Alerts");
+        }}
+        class={cn(buttonClass(), "relative")}
+      >
+        <NotificationBubble
+          variant="fromCorner"
+          show={showAlertsNotificationBubble()}
+        />
+      </Button>
+      <AnimePresence exitBeforeEnter>
+        <Show
+          when={getUserData()}
+          fallback={
+            <Anime
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, duration: 125 }}
+              exit={{ opacity: 0, duration: 125 }}
+            >
+              <Show when={showLoginButton()}>
+                <Button
+                  variant="text"
+                  to="/login"
+                  dataset={{
+                    "data-nav-item": "login",
+                  }}
+                  fa={{
+                    icon: "fa-user",
+                    variant: "regular",
+                    fixedWidth: true,
+                  }}
+                  class={buttonClass()}
+                />
+              </Show>
+            </Anime>
+          }
+        >
+          {(snap) => (
+            <Anime
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, duration: 125 }}
+              exit={{ opacity: 0, duration: 125 }}
+            >
+              <div
+                ref={accountMenuRef}
+                class="group/account-menu relative"
+                // oxlint-disable-next-line react/no-unknown-property
+                on:click={(e: MouseEvent) => {
+                  if (isCoarse()) {
+                    if (e.target instanceof HTMLAnchorElement) {
+                      if (e.target.dataset["navItem"] === "account") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }
+                      setAccountMenuOpen((prev) => !prev);
+                    }
+                  }
+                }}
+              >
+                <Button
+                  variant="text"
+                  class={cn(
+                    "h-full",
+                    // the level badge's background reads this var: swap it
+                    // on hover instead of targeting the badge with a
+                    // descendant selector, which every element would be tested
+                    // against on each style recalc
+                    "hover:[--themable-button-text:var(--themable-button-hover-text)]",
+                    { "opacity-(--nav-focus-opacity)": isFocusMode() },
+                  )}
+                  to="/account"
+                  dataset={{
+                    "data-nav-item": "account",
+                  }}
+                >
+                  <User
+                    user={snap()}
+                    showAvatar={true}
+                    iconsOnly={true}
+                    hideNameOnSmallScreens={true}
+                    level={getAnimatedLevel()}
+                    showSpinner={getAccountButtonSpinner()}
+                    showNotificationBubble={showFriendsNotificationBubble()}
+                    fontClass="text-em-xs"
+                  />
+                </Button>
+                <AccountMenu
+                  class={cn(
+                    // group variants: only the menu is tested against these
+                    // selectors, unlike descendant (`**:`) variants
+                    !isFocusMode() &&
+                      "group-hover/account-menu:pointer-events-auto group-hover/account-menu:opacity-100",
+                    "group-has-focus-visible/account-menu:pointer-events-auto group-has-focus-visible/account-menu:opacity-100",
+                    getAccountMenuOpen() && "pointer-events-auto opacity-100",
+                  )}
+                  showFriendsNotificationBubble={showFriendsNotificationBubble()}
+                />
+              </div>
+              <div class="relative">
+                <AccountXpBar />
+              </div>
+            </Anime>
+          )}
+        </Show>
+      </AnimePresence>
+    </nav>
+  );
+}
